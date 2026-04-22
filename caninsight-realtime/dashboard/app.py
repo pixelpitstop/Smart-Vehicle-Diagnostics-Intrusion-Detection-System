@@ -8,7 +8,7 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-LOG_PATH_DEFAULT = PROJECT_ROOT / "logs" / "stream_events.jsonl"
+LOG_PATH_DEFAULT = PROJECT_ROOT / ".runtime" / "stream_events.jsonl"
 
 
 def _parse_jsonl_events(path: Path, max_events: int) -> list[dict]:
@@ -55,6 +55,7 @@ def parse_log_path(user_input: str) -> Path:
 def available_log_paths() -> list[str]:
     return [
         str(LOG_PATH_DEFAULT),
+        str(PROJECT_ROOT / "logs" / "stream_events.jsonl"),
         str(PROJECT_ROOT / "logs" / "stream_events.json"),
     ]
 

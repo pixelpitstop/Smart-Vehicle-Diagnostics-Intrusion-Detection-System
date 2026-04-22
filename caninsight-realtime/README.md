@@ -28,6 +28,13 @@ During Step 1 implementation, I reviewed the running system and documented the k
 
 These are now treated as the official Step-1 findings and Phase-2 hardening targets.
 
+## Mistake/Difficulty Faced During Development
+
+- Mistake: Runtime stream logs (`stream_events.json`, `stream_events.jsonl`) were tracked in Git during active testing.
+- Difficulty caused: repository growth/noisy commits and avoidable deployment friction.
+- Resolution: moved default runtime log path to `.runtime/stream_events.jsonl`, added ignore rules for generated logs, and stopped tracking historical runtime log files.
+- Practice going forward: keep only code/config/docs under version control; keep all runtime artifacts untracked.
+
 ## Phase 2 Hardening Plan (Implemented)
 
 ### 1) Scalable stream log format
@@ -177,7 +184,9 @@ Example:
 
 ## Stream Event Output (JSONL)
 
-Each processed line in logs/stream_events.jsonl is a complete event object:
+By default the app now writes to `.runtime/stream_events.jsonl` (untracked).
+
+Each processed line in the JSONL log is a complete event object:
 
 ```json
 {"timestamp":"2026-04-22T10:41:22.091Z","can_id":"0x100","payload":"0E FE 18 00 76 00 00 00","signals":{"rpm":1325.0,"speed_kph":42.0,"engine_temp_c":92.0},"alerts":[],"risk_level":"low"}

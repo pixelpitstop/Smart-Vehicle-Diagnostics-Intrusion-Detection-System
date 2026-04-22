@@ -11,7 +11,7 @@ from streaming.producer import CANFrameProducer, ProducerConfig
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_LOG_PATH = PROJECT_ROOT / "logs" / "stream_events.jsonl"
+DEFAULT_LOG_PATH = PROJECT_ROOT / ".runtime" / "stream_events.jsonl"
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "signals.json"
 
 

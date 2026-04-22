@@ -1,0 +1,9 @@
+# Python cache and tooling
+__pycache__/
+.pytest_cache/
+
+# Local runtime outputs
+.runtime/
+logs/*.json
+logs/*.jsonl
+!logs/.gitkeep
