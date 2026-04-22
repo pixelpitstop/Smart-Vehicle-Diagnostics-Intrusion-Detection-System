@@ -6,35 +6,6 @@ It extends the Phase 1 architecture into a production-style realtime pipeline:
 
 RAW CAN FRAME -> CONFIG-DRIVEN DECODE -> STATE UPDATE -> HYBRID DETECTION -> INSIGHT EVENT -> LIVE DASHBOARD
 
-## Step 1 Retrospective (What I identified as flaws)
-
-During Step 1 implementation, I reviewed the running system and documented the key flaws that must be fixed to make Phase 2 production-ready:
-
-1. Log write scalability flaw
-- Processed events were written as a full JSON array rewrite per message.
-- This caused O(n) disk work for each event and created long-run performance risk.
-
-2. Startup/runtime path fragility
-- Consumer and dashboard behavior depended on where commands were launched from.
-- Relative paths created runtime failures (missing config/log paths) when started outside project root.
-
-3. Dashboard API deprecation debt
-- Streamlit was emitting repeated deprecation warnings for use_container_width.
-- This risks breakage and noisy logs during demos/ops.
-
-4. Weak test coverage baseline
-- Core decode/process behavior had no automated tests.
-- Regression risk was high for future refactors.
-
-These are now treated as the official Step-1 findings and Phase-2 hardening targets.
-
-## Mistake/Difficulty Faced During Development
-
-- Mistake: Runtime stream logs (`stream_events.json`, `stream_events.jsonl`) were tracked in Git during active testing.
-- Difficulty caused: repository growth/noisy commits and avoidable deployment friction.
-- Resolution: moved default runtime log path to `.runtime/stream_events.jsonl`, added ignore rules for generated logs, and stopped tracking historical runtime log files.
-- Practice going forward: keep only code/config/docs under version control; keep all runtime artifacts untracked.
-
 ## Phase 2 Hardening Plan (Implemented)
 
 ### 1) Scalable stream log format
@@ -99,8 +70,9 @@ caninsight-realtime/
 ├── dashboard/
 │   └── app.py
 ├── logs/
-│   ├── stream_events.jsonl
-│   └── stream_events.json
+│   └── .gitkeep
+├── .runtime/
+│   └── stream_events.jsonl
 ├── tests/
 │   ├── test_decoder.py
 │   └── test_processor_jsonl.py
