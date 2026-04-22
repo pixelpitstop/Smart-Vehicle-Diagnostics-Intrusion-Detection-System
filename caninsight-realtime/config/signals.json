@@ -1,0 +1,65 @@
+{
+  "rpm": {
+    "bytes": [
+      0,
+      1
+    ],
+    "type": "uint16",
+    "byte_order": "big",
+    "scale": 0.25,
+    "round": 2,
+    "unit": "rpm"
+  },
+  "throttle_pct": {
+    "bytes": [
+      2
+    ],
+    "type": "uint8",
+    "scale": 0.3921568627,
+    "round": 2,
+    "unit": "%"
+  },
+  "speed_kph": {
+    "bytes": [
+      3
+    ],
+    "type": "uint8",
+    "scale": 1.0,
+    "unit": "kph"
+  },
+  "engine_temp_c": {
+    "bytes": [
+      4
+    ],
+    "type": "uint8",
+    "offset": -40,
+    "unit": "C"
+  },
+  "brake_pct": {
+    "bytes": [
+      5
+    ],
+    "type": "uint8",
+    "scale": 0.3921568627,
+    "round": 2,
+    "unit": "%"
+  },
+  "engine_load_pct": {
+    "bytes": [
+      6
+    ],
+    "type": "uint8",
+    "scale": 0.3921568627,
+    "round": 2,
+    "unit": "%"
+  },
+  "fuel_level_pct": {
+    "bytes": [
+      7
+    ],
+    "type": "uint8",
+    "scale": 0.3921568627,
+    "round": 2,
+    "unit": "%"
+  }
+}
