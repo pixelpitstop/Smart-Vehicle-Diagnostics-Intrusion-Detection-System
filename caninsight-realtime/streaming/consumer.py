@@ -13,6 +13,7 @@ from streaming.producer import CANFrameProducer, ProducerConfig
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOG_PATH = PROJECT_ROOT / ".runtime" / "stream_events.jsonl"
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "signals.json"
+DEFAULT_SECURITY_CONFIG_PATH = PROJECT_ROOT / "config" / "security.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,6 +66,7 @@ def main() -> None:
         event_log_path=log_path,
         window_size=args.window,
         ml_enabled=not args.disable_ml,
+        security_config_path=DEFAULT_SECURITY_CONFIG_PATH,
     )
 
     producer_thread = Thread(target=producer.run, daemon=True)

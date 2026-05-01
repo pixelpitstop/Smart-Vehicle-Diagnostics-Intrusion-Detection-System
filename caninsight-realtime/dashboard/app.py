@@ -229,6 +229,22 @@ def render_kpis(df: pd.DataFrame) -> None:
     )
 
 
+def render_freshness(df: pd.DataFrame, mode: str, stale_after_seconds: float = 5.0) -> None:
+    if mode != "Live" or df.empty or "timestamp" not in df.columns:
+        return
+
+    latest = df["timestamp"].max()
+    if pd.isna(latest):
+        return
+    if latest.tzinfo is None:
+        latest = latest.tz_localize("UTC")
+
+    now_utc = pd.Timestamp.now(tz="UTC")
+    age_seconds = max(0.0, (now_utc - latest).total_seconds())
+    if age_seconds > stale_after_seconds:
+        st.warning(f"Live stream looks stale (last event {age_seconds:.1f}s ago). Check streaming.consumer status.")
+
+
 def render_charts(df: pd.DataFrame) -> None:
     st.subheader("Realtime Telemetry")
     chart_df = df.set_index("timestamp")
@@ -270,6 +286,7 @@ def main() -> None:
     render_summary(events)
     df_events = build_and_validate(events)
     render_kpis(df_events)
+    render_freshness(df_events, mode)
     if not df_events.empty:
         render_charts(df_events)
     render_alerts(events)

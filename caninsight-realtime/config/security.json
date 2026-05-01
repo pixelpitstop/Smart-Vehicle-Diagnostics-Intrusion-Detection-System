@@ -1,0 +1,9 @@
+{
+  "allowed_can_ids": [
+    "0x100"
+  ],
+  "min_inter_arrival_ms": 10.0,
+  "max_same_payload_streak": 12,
+  "burst_window_seconds": 1.0,
+  "burst_threshold_per_can": 40
+}

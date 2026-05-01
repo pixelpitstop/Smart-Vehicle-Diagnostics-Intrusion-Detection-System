@@ -62,11 +62,13 @@ caninsight-realtime/
 │   ├── processor.py
 │   └── state.py
 ├── detection/
+│   ├── intrusion.py
 │   ├── rules.py
 │   ├── statistical.py
 │   └── ml_model.py
 ├── config/
 │   └── signals.json
+│   └── security.json
 ├── dashboard/
 │   └── app.py
 ├── logs/
@@ -75,6 +77,7 @@ caninsight-realtime/
 │   └── stream_events.jsonl
 ├── tests/
 │   ├── test_decoder.py
+│   ├── test_intrusion.py
 │   └── test_processor_jsonl.py
 ├── run_phase2.py
 ├── requirements.txt
@@ -88,6 +91,7 @@ caninsight-realtime/
 - Config-driven signal decoding via JSON mapping
 - Stateful rolling-window processing
 - Hybrid anomaly detection:
+  - intrusion detection (CAN ID spoofing, replay-like payload streaks, burst traffic, high-rate anomalies, protocol violations)
   - rules (overheating, RPM spikes, harsh braking, aggressive acceleration)
   - statistical z-score anomalies
   - optional IsolationForest detector
@@ -151,6 +155,22 @@ Example:
   "rpm": {"bytes": [0, 1], "scale": 0.25},
   "speed_kph": {"bytes": [3]},
   "engine_temp_c": {"bytes": [4], "offset": -40}
+}
+```
+
+## Security Detection Configuration
+
+Intrusion checks are configured in `config/security.json`.
+
+Example:
+
+```json
+{
+  "allowed_can_ids": ["0x100"],
+  "min_inter_arrival_ms": 10.0,
+  "max_same_payload_streak": 12,
+  "burst_window_seconds": 1.0,
+  "burst_threshold_per_can": 40
 }
 ```
 
