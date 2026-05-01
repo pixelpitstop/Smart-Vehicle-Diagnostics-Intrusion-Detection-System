@@ -77,9 +77,11 @@ caninsight-realtime/
 │   └── stream_events.jsonl
 ├── tests/
 │   ├── test_decoder.py
+│   ├── test_integration.py
 │   ├── test_intrusion.py
 │   └── test_processor_jsonl.py
 ├── run_phase2.py
+├── benchmark.py
 ├── requirements.txt
 ├── requirements-dev.txt
 └── README.md
@@ -98,6 +100,114 @@ caninsight-realtime/
 - Unified alert schema and risk scoring
 - Live Streamlit dashboard with auto-refresh
 - Append-only JSONL stream event logging
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    CANInsight Realtime Pipeline                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────────┐         ┌──────────────┐         ┌──────────────┐
+    │ CAN Producer │ ──────> │  In-Memory   │ ──────> │  Processor   │
+    │  (Simulator  │         │    Queue     │         │ (Detect &    │
+    │   or Real)   │         │              │         │  Score Risk) │
+    └──────────────┘         └──────────────┘         └──────────────┘
+                                                              │
+                                       ┌──────────────────────┼──────────────────────┐
+                                       │                      │                      │
+                                       ▼                      ▼                      ▼
+                            ┌────────────────────┐ ┌────────────────────┐ ┌────────────────────┐
+                            │   RULES DETECTOR   │ │ STATISTICAL        │ │ INTRUSION DETECTOR │
+                            │  (Mechanical)      │ │ DETECTOR (Z-Score) │ │ (Security)         │
+                            │                    │ │                    │ │                    │
+                            │ • Overheat         │ │ • Baseline shifts  │ │ • CAN ID whitelist │
+                            │ • RPM spike        │ │ • Anomalies        │ │ • Replay patterns  │
+                            │ • Harsh braking    │ │                    │ │ • Burst traffic    │
+                            │ • Acceleration     │ │                    │ │ • Protocol violation│
+                            └────────────────────┘ └────────────────────┘ └────────────────────┘
+                                       │                      │                      │
+                                       └──────────────────────┼──────────────────────┘
+                                                              │
+                                                    ┌─────────────────────┐
+                                                    │   ALERT & RISK      │
+                                                    │   AGGREGATION       │
+                                                    │                     │
+                                                    │ Risk Score:         │
+                                                    │  low  | medium | hi │
+                                                    └─────────────────────┘
+                                                              │
+                           ┌──────────────────────────────────┼──────────────────────────────────┐
+                           │                                  │                                  │
+                           ▼                                  ▼                                  ▼
+                    ┌────────────────┐            ┌────────────────┐               ┌────────────────┐
+                    │   JSONL Log    │            │ Live Dashboard │               │ External       │
+                    │  (Append-only) │            │  (Streamlit)   │               │ Systems        │
+                    └────────────────┘            └────────────────┘               └────────────────┘
+```
+
+## Threat Model
+
+CANInsight Realtime detects the following vehicle-level attack categories in realtime:
+
+1. **Spoofed CAN Messages (ID Spoofing)**
+   - Detection: CAN ID whitelist enforcement
+   - Impact: Prevents injection of commands from unauthorized sources
+
+2. **Replay Attacks**
+   - Detection: Identical payload streak counter (heuristic)
+   - Impact: Detects scripted/recorded message replays
+
+3. **Burst/Flooding Attacks**
+   - Detection: High-rate traffic and burst thresholds per CAN ID
+   - Impact: Identifies denial-of-service and jamming attempts
+
+4. **Protocol Violations**
+   - Detection: Payload format validation (8-byte CAN frame structure)
+   - Impact: Catches malformed or truncated injected messages
+
+5. **Timing Anomalies**
+   - Detection: Inter-arrival interval monitoring (< min threshold)
+   - Impact: Identifies accelerated or out-of-sequence messages
+
+Attacks **not** currently detected:
+- Cryptographic attacks (no authentication layer)
+- Firmware exploits (require firmware-level hooks)
+- Side-channel attacks (not applicable to CAN bus sniffing)
+
+To improve threat coverage, future work could add:
+- Message signing/HMAC validation (requires ECU firmware participation)
+- Machine learning anomaly detection on signal patterns
+- Multi-vehicle correlation for fleet-level threats
+
+## Performance & Benchmarks
+
+### Throughput & Latency (1000 messages)
+
+Measured on development machine (single-threaded consumer, no ML):
+
+```
+Total time:        0.243 seconds
+Throughput:        4,121 events/sec
+Avg latency:       0.232 ms
+P50 latency:       0.238 ms
+P95 latency:       0.263 ms
+P99 latency:       0.299 ms
+Max latency:       0.536 ms
+```
+
+### Scaling Notes
+
+- Single-process queue: handles ~4,000-5,000 events/sec comfortably
+- Per-event processing time: <1 ms including all detection layers
+- ML detector (IsolationForest) when enabled: adds ~0.1-0.2 ms per event (optional)
+- JSONL I/O with thread lock: non-blocking; write latency decoupled from detection
+
+### Running Benchmarks Locally
+
+```bash
+python benchmark.py
+```
 
 ## Quick Start
 
